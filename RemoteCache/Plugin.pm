@@ -92,6 +92,26 @@ sub initPlugin {
 		} else {
 			$log->warn("FAILED: Re-registration failed, still: " . ($afterReReg || 'none'));
 		}
+		
+		# Hook into Song class to debug handler assignments
+		$log->warn("Installing Song handler debugging hook...");
+		require Slim::Player::Song;
+		
+		# Override the getNextSong method to add debugging
+		no warnings 'redefine';
+		my $original_getNextSong = \&Slim::Player::Song::getNextSong;
+		*Slim::Player::Song::getNextSong = sub {
+			my $self = shift;
+			my $result = $original_getNextSong->($self, @_);
+			
+			# Log what handler was assigned
+			my $handler = $self->currentTrackHandler();
+			my $url = $self->currentTrack() ? $self->currentTrack()->url : 'no track';
+			$log->warn("Song handler assigned: " . ($handler || 'none') . " for URL: $url");
+			
+			return $result;
+		};
+		use warnings 'redefine';
 	});
 	
 	$log->info("RemoteCache Plugin initialization complete");
