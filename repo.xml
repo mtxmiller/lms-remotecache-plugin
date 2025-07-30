@@ -15,7 +15,7 @@
 			<id>E8F3F6C6-F9A6-4A64-B6D4-D5C5B5A5F5E5</id>
 			<minTarget>7.5.0</minTarget>
 			<maxTarget>*</maxTarget>
-			<sha>b5984afea96ebeff88470a573bf40be3f562204a</sha>
+			<sha>79555364edf4bce47ac575ef4044e8227e4a0b75</sha>
 		</plugin>
 	</plugins>
 </extensions>
