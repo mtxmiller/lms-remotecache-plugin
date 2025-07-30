@@ -18,6 +18,23 @@ my $log = Slim::Utils::Log->addLogCategory({
 });
 my $prefs = preferences('plugin.remotecache');
 
+sub canDirectStream {
+	my ($class, $client, $url) = @_;
+	
+	$log->debug("canDirectStream called with URL: $url");
+	
+	# Create a minimal song object to call canDirectStreamSong
+	# This is a workaround for when base File.pm is used instead of LocalFile.pm
+	my $track = { url => $url };
+	my $song = { 
+		track => $track,
+		seekdata => undef,
+	};
+	
+	# Call our main logic
+	return $class->canDirectStreamSong($client, $song);
+}
+
 sub canDirectStreamSong {
 	my ($class, $client, $song) = @_;
 	
