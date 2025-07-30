@@ -47,8 +47,6 @@ sub shutdownPlugin {
 	
 	# Note: We don't unregister the handler as LMS doesn't provide that functionality
 	# The handler will remain until server restart
-	
-	$class->SUPER::shutdownPlugin(@_);
 }
 
 # Web settings page integration
