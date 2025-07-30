@@ -21,7 +21,8 @@ my $prefs = preferences('plugin.remotecache');
 sub canDirectStream {
 	my ($class, $client, $url) = @_;
 	
-	$log->debug("canDirectStream called with URL: $url");
+	$log->warn("canDirectStream called with URL: $url");  # Use warn to ensure it shows
+	$log->warn("Client: " . ($client->name() || 'unknown') . " MAC: " . ($client->macaddress() || 'unknown'));
 	
 	# Create a minimal song object to call canDirectStreamSong
 	# This is a workaround for when base File.pm is used instead of LocalFile.pm
@@ -32,7 +33,9 @@ sub canDirectStream {
 	};
 	
 	# Call our main logic
-	return $class->canDirectStreamSong($client, $song);
+	my $result = $class->canDirectStreamSong($client, $song);
+	$log->warn("canDirectStream returning: " . ($result || '0'));
+	return $result;
 }
 
 sub canDirectStreamSong {
@@ -63,8 +66,8 @@ sub canDirectStreamSong {
 		# Get the original URL from the song
 		my $originalURL = $song->track->url;
 		
-		$log->info("RemoteCache: Client has 'loc' capability, creating cache URL");
-		$log->info("  Original URL: $originalURL");
+		$log->warn("RemoteCache: Client has 'loc' capability, creating cache URL");
+		$log->warn("  Original URL: $originalURL");
 		
 		# For local files, convert to HTTP streaming URL first
 		if ($originalURL =~ m{^file:///}) {
