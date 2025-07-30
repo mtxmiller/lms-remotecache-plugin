@@ -11,7 +11,11 @@ use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use Slim::Utils::Misc;
 
-my $log = logger('plugin.remotecache.localfile');
+my $log = Slim::Utils::Log->addLogCategory({
+	'category'     => 'plugin.remotecache.localfile',
+	'defaultLevel' => 'ERROR',
+	'description'  => 'PLUGIN_REMOTECACHE_LOCALFILE'
+});
 my $prefs = preferences('plugin.remotecache');
 
 sub canDirectStreamSong {
@@ -27,7 +31,7 @@ sub canDirectStreamSong {
 		$log->debug("Song URL: " . ($song->track->url || 'unknown'));
 	}
 	
-	# Check same conditions as original LocalFile handler
+	# Check same conditions as original LocalPlayer plugin
 	# - Client supports 'loc' capability (last in format list)
 	# - Client is not synced
 	# - No seek data
@@ -42,37 +46,28 @@ sub canDirectStreamSong {
 		# Get the original URL from the song
 		my $originalURL = $song->track->url;
 		
-		# Check if this is already a local file path
+		$log->info("RemoteCache: Client has 'loc' capability, creating cache URL");
+		$log->info("  Original URL: $originalURL");
+		
+		# For local files, convert to HTTP streaming URL first
 		if ($originalURL =~ m{^file:///}) {
-			$log->info("Song is local file, converting to HTTP stream URL for remote caching");
-			
-			# Convert local file path to HTTP stream URL
-			# This is the key difference from the original LocalFile handler
+			$log->debug("Converting local file to HTTP stream URL for remote caching");
 			my $httpURL = $class->convertLocalFileToHTTP($client, $originalURL);
 			
 			if ($httpURL) {
 				my $remoteCacheURL = "file://127.0.0.1:3483/" . $httpURL;
-				
-				$log->info("RemoteCache: Converting local file to remote cache URL");
-				$log->info("  Original: $originalURL");
-				$log->info("  HTTP URL: $httpURL");
 				$log->info("  Cache URL: $remoteCacheURL");
-				
 				return $remoteCacheURL;
 			} else {
 				$log->warn("Failed to convert local file to HTTP URL: $originalURL");
+				return 0;
 			}
-		} elsif ($originalURL =~ m{^https?://}) {
-			# Already an HTTP URL, wrap it for remote caching
+		} 
+		# For any other URL (HTTP, HTTPS, etc.), wrap it for remote caching
+		else {
 			my $remoteCacheURL = "file://127.0.0.1:3483/" . $originalURL;
-			
-			$log->info("RemoteCache: Wrapping HTTP URL for caching");
-			$log->info("  Original: $originalURL");
 			$log->info("  Cache URL: $remoteCacheURL");
-			
 			return $remoteCacheURL;
-		} else {
-			$log->debug("URL not suitable for remote caching: $originalURL");
 		}
 	} else {
 		if ($prefs->get('debug')) {
@@ -82,6 +77,7 @@ sub canDirectStreamSong {
 			push @reasons, "client synced" if $client->isSynced;
 			push @reasons, "has seek data" if $song->seekdata;
 			push @reasons, "virtual track" if $song->track->virtual;
+			push @reasons, "RemoteCache disabled" unless $prefs->get('enabled');
 			
 			$log->debug("RemoteCache not applicable: " . join(', ', @reasons));
 		}
