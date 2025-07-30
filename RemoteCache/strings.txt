@@ -1,14 +1,14 @@
 PLUGIN_REMOTECACHE
-	EN	Remote Cache
+	EN	RemoteCache
 
 PLUGIN_REMOTECACHE_DESC
 	EN	Enables remote caching for mobile clients with 'loc' capability. Sends file:// URLs with embedded HTTP URLs for download and caching on remote devices like LyrPlay iOS app.
 
 PLUGIN_REMOTECACHE_SETTINGS
-	EN	Remote Cache Settings
+	EN	RemoteCache Settings
 
 PLUGIN_REMOTECACHE_ENABLED
-	EN	Enable Remote Cache
+	EN	Enable RemoteCache
 
 PLUGIN_REMOTECACHE_ENABLED_DESC
 	EN	Enable remote caching functionality for clients that support 'loc' capability

@@ -5,7 +5,7 @@
 	</details>
 	<plugins>
 		<plugin>
-			<name>Remote Cache</name>
+			<name>RemoteCache</name>
 			<description>Enables remote caching for mobile clients with 'loc' capability. Allows apps like LyrPlay to download and cache music files for offline playback.</description>
 			<url>https://github.com/mtxmiller/lms-remotecache-plugin/releases/download/v1.0.0/RemoteCache.zip</url>
 			<link>https://github.com/mtxmiller/lms-remotecache-plugin</link>
@@ -15,7 +15,7 @@
 			<id>E8F3F6C6-F9A6-4A64-B6D4-D5C5B5A5F5E5</id>
 			<minTarget>7.5.0</minTarget>
 			<maxTarget>*</maxTarget>
-			<sha>79555364edf4bce47ac575ef4044e8227e4a0b75</sha>
+			<sha>2b3d54f06b3e570ab514ab510214a6e1c385bc0e</sha>
 		</plugin>
 	</plugins>
 </extensions>
