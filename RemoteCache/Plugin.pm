@@ -28,6 +28,12 @@ sub initPlugin {
 		debug => 0,
 	});
 	
+	# Register Settings page
+	if (main::WEBUI) {
+		require Plugins::RemoteCache::Settings;
+		Plugins::RemoteCache::Settings->new();
+	}
+	
 	# Register our custom LocalFile handler
 	# This overrides the built-in LocalFile handler
 	Slim::Player::ProtocolHandlers->registerHandler(
@@ -48,7 +54,5 @@ sub shutdownPlugin {
 	# Note: We don't unregister the handler as LMS doesn't provide that functionality
 	# The handler will remain until server restart
 }
-
-# Settings handled by Settings.pm
 
 1;
