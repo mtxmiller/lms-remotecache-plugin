@@ -7,22 +7,31 @@ package Plugins::RemoteCache::LocalFile;
 use strict;
 use base qw(Slim::Player::Protocols::File);
 
-use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use Slim::Utils::Misc;
 
-my $log = Slim::Utils::Log->addLogCategory({
-	'category'     => 'plugin.remotecache.localfile',
-	'defaultLevel' => 'ERROR',
-	'description'  => 'PLUGIN_REMOTECACHE_LOCALFILE'
-});
 my $prefs = preferences('plugin.remotecache');
+
+# Simple file logging for debugging
+sub debugLog {
+	my $message = shift;
+	my $timestamp = scalar localtime();
+	
+	# Write to a simple log file in LMS cache directory
+	if (open(my $fh, '>>', Slim::Utils::OSDetect::dirsFor('cache') . '/remotecache_debug.log')) {
+		print $fh "[$timestamp] $message\n";
+		close($fh);
+	}
+}
 
 sub canDirectStream {
 	my ($class, $client, $url) = @_;
 	
-	$log->warn("canDirectStream called with URL: $url");  # Use warn to ensure it shows
-	$log->warn("Client: " . ($client->name() || 'unknown') . " MAC: " . ($client->macaddress() || 'unknown'));
+	debugLog("canDirectStream called with URL: $url");
+	debugLog("Client: " . ($client->name() || 'unknown') . " MAC: " . ($client->macaddress() || 'unknown'));
+	
+	warn "RemoteCache: canDirectStream called with URL: $url\n";
+	warn "RemoteCache: Client: " . ($client->name() || 'unknown') . " MAC: " . ($client->macaddress() || 'unknown') . "\n";
 	
 	# Create a minimal song object to call canDirectStreamSong
 	# This is a workaround for when base File.pm is used instead of LocalFile.pm
@@ -34,22 +43,26 @@ sub canDirectStream {
 	
 	# Call our main logic
 	my $result = $class->canDirectStreamSong($client, $song);
-	$log->warn("canDirectStream returning: " . ($result || '0'));
+	warn "RemoteCache: canDirectStream returning: " . ($result || '0') . "\n";
 	return $result;
 }
 
 sub canDirectStreamSong {
 	my ($class, $client, $song) = @_;
 	
+	debugLog("=== canDirectStreamSong called ===");
+	debugLog("Client: " . ($client->name || 'unknown') . " MAC: " . ($client->macaddress || 'unknown'));
+	debugLog("Client formats: " . join(',', @{$client->myFormats || []}));
+	debugLog("Song URL: " . ($song->{track}->{url} || 'unknown'));
+	debugLog("Plugin enabled: " . ($prefs->get('enabled') ? 'YES' : 'NO'));
+	
 	# Check if RemoteCache is enabled
 	return 0 unless $prefs->get('enabled');
 	
-	# Debug logging
-	if ($prefs->get('debug')) {
-		$log->debug("Checking canDirectStreamSong for client: " . ($client->name || 'unknown'));
-		$log->debug("Client formats: " . join(',', @{$client->myFormats || []}));
-		$log->debug("Song URL: " . ($song->track->url || 'unknown'));
-	}
+	# Debug logging  
+	warn "RemoteCache: Checking canDirectStreamSong for client: " . ($client->name || 'unknown') . "\n";
+	warn "RemoteCache: Client formats: " . join(',', @{$client->myFormats || []}) . "\n";
+	warn "RemoteCache: Song URL: " . ($song->{track}->{url} || 'unknown') . "\n";
 	
 	# Check same conditions as original LocalPlayer plugin
 	# - Client supports 'loc' capability (last in format list)
@@ -66,41 +79,39 @@ sub canDirectStreamSong {
 		# Get the original URL from the song
 		my $originalURL = $song->track->url;
 		
-		$log->warn("RemoteCache: Client has 'loc' capability, creating cache URL");
-		$log->warn("  Original URL: $originalURL");
+		warn "RemoteCache: Client has 'loc' capability, creating cache URL\n";
+		warn "RemoteCache: Original URL: $originalURL\n";
 		
 		# For local files, convert to HTTP streaming URL first
 		if ($originalURL =~ m{^file:///}) {
-			$log->debug("Converting local file to HTTP stream URL for remote caching");
+			warn "RemoteCache: Converting local file to HTTP stream URL for remote caching\n";
 			my $httpURL = $class->convertLocalFileToHTTP($client, $originalURL);
 			
 			if ($httpURL) {
 				my $remoteCacheURL = "file://127.0.0.1:3483/" . $httpURL;
-				$log->info("  Cache URL: $remoteCacheURL");
+				warn "RemoteCache: Cache URL: $remoteCacheURL\n";
 				return $remoteCacheURL;
 			} else {
-				$log->warn("Failed to convert local file to HTTP URL: $originalURL");
+				warn "RemoteCache: Failed to convert local file to HTTP URL: $originalURL\n";
 				return 0;
 			}
 		} 
 		# For any other URL (HTTP, HTTPS, etc.), wrap it for remote caching
 		else {
 			my $remoteCacheURL = "file://127.0.0.1:3483/" . $originalURL;
-			$log->info("  Cache URL: $remoteCacheURL");
+			warn "RemoteCache: Cache URL: $remoteCacheURL\n";
 			return $remoteCacheURL;
 		}
 	} else {
-		if ($prefs->get('debug')) {
-			my @reasons;
-			push @reasons, "no 'loc' capability" unless ($client->can('myFormats') && 
-				@{$client->myFormats || []} > 0 && $client->myFormats->[-1] eq 'loc');
-			push @reasons, "client synced" if $client->isSynced;
-			push @reasons, "has seek data" if $song->seekdata;
-			push @reasons, "virtual track" if $song->track->virtual;
-			push @reasons, "RemoteCache disabled" unless $prefs->get('enabled');
-			
-			$log->debug("RemoteCache not applicable: " . join(', ', @reasons));
-		}
+		my @reasons;
+		push @reasons, "no 'loc' capability" unless ($client->can('myFormats') && 
+			@{$client->myFormats || []} > 0 && $client->myFormats->[-1] eq 'loc');
+		push @reasons, "client synced" if $client->isSynced;
+		push @reasons, "has seek data" if $song->seekdata;
+		push @reasons, "virtual track" if $song->{track} && $song->{track}->{virtual};
+		push @reasons, "RemoteCache disabled" unless $prefs->get('enabled');
+		
+		warn "RemoteCache: Not applicable: " . join(', ', @reasons) . "\n";
 	}
 	
 	# Fall through to normal server-based playback
@@ -124,7 +135,7 @@ sub convertLocalFileToHTTP {
 	my $mac = $client->macaddress();
 	my $httpURL = "http://${serverHost}:${serverPort}/stream.mp3?player=${mac}";
 	
-	$log->debug("Converted local file to HTTP: $localFileURL -> $httpURL");
+	warn "RemoteCache: Converted local file to HTTP: $localFileURL -> $httpURL\n";
 	
 	return $httpURL;
 }
@@ -133,13 +144,13 @@ sub requestString {
 	# Handle the file:// URL sent to remote clients
 	my ($class, $client, $url, undef, $seekdata) = @_;
 	
-	$log->debug("RemoteCache requestString called with URL: $url");
+	warn "RemoteCache: requestString called with URL: $url\n";
 	
 	# Extract the embedded HTTP URL from our file:// wrapper
 	if ($url =~ m{^file://127\.0\.0\.1:3483/(.+)$}) {
 		my $httpURL = $1;
 		
-		$log->info("RemoteCache: Extracted HTTP URL for client download: $httpURL");
+		warn "RemoteCache: Extracted HTTP URL for client download: $httpURL\n";
 		
 		# Return the HTTP URL for the client to download
 		return $httpURL;
@@ -149,7 +160,7 @@ sub requestString {
 	$url =~ s{^file://127\.0\.0\.1:3483/}{};
 	my $filepath = Slim::Utils::Misc::pathFromFileURL($url);
 	
-	$log->debug("RemoteCache: Fallback to file path: $filepath");
+	warn "RemoteCache: Fallback to file path: $filepath\n";
 	
 	return $filepath;
 }
