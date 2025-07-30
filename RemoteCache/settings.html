@@ -1,0 +1,49 @@
+[% PROCESS settings/header.html %]
+
+<h3>[% "PLUGIN_REMOTECACHE_SETTINGS" | string %]</h3>
+
+<form method="post">
+	<input type="hidden" name="saveSettings" value="1">
+	
+	<table class="settingsTable">
+		<tr>
+			<td>
+				<label for="enabled">[% "PLUGIN_REMOTECACHE_ENABLED" | string %]:</label>
+			</td>
+			<td>
+				<input type="checkbox" name="enabled" id="enabled" value="1" 
+					[% IF prefs.enabled %]checked="checked"[% END %]>
+				<div class="desc">[% "PLUGIN_REMOTECACHE_ENABLED_DESC" | string %]</div>
+			</td>
+		</tr>
+		
+		<tr>
+			<td>
+				<label for="debug">[% "PLUGIN_REMOTECACHE_DEBUG" | string %]:</label>
+			</td>
+			<td>
+				<input type="checkbox" name="debug" id="debug" value="1" 
+					[% IF prefs.debug %]checked="checked"[% END %]>
+				<div class="desc">[% "PLUGIN_REMOTECACHE_DEBUG_DESC" | string %]</div>
+			</td>
+		</tr>
+	</table>
+	
+	<br>
+	<input type="submit" value="[% "SAVE" | string %]">
+</form>
+
+<div style="margin-top: 20px; padding: 10px; background-color: #f0f0f0; border-radius: 5px;">
+	<h4>How Remote Cache Works:</h4>
+	<ul>
+		<li>Detects clients with 'loc' capability (like LyrPlay iOS app)</li>
+		<li>Converts local file paths to HTTP streaming URLs</li>
+		<li>Wraps HTTP URLs in file:// format for remote caching</li>
+		<li>Allows mobile clients to download and cache music files</li>
+		<li>Falls back to normal streaming for clients without 'loc' capability</li>
+	</ul>
+	
+	<p><strong>Compatible Apps:</strong> LyrPlay for iOS, custom Squeezelite builds with remote caching</p>
+</div>
+
+[% PROCESS settings/footer.html %]

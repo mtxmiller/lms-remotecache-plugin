@@ -1,0 +1,19 @@
+<?xml version='1.0' standalone='yes'?>
+<extension>
+	<name>PLUGIN_REMOTECACHE</name>
+	<creator>LyrPlay Development</creator>
+	<defaultState>enabled</defaultState>
+	<description>PLUGIN_REMOTECACHE_DESC</description>
+	<email>support@lyrplay.app</email>
+	<homepageURL>https://github.com/mtxmiller/LyrPlay</homepageURL>
+	<id>E8F3F6C6-F9A6-4A64-B6D4-D5C5B5A5F5E5</id>
+	<module>Plugins::RemoteCache::Plugin</module>
+	<optionsURL>plugins/RemoteCache/settings.html</optionsURL>
+	<targetApplication>
+		<id>SqueezeCenter</id>
+		<maxVersion>*</maxVersion>
+		<minVersion>7.5.0</minVersion>
+	</targetApplication>
+	<type>2</type>
+	<version>1.0.0</version>
+</extension>
