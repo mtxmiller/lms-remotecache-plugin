@@ -38,14 +38,17 @@ sub initPlugin {
 		Plugins::RemoteCache::Settings->new();
 	}
 	
-	# Register our custom LocalFile handler
-	# This overrides the built-in LocalFile handler
-	Slim::Player::ProtocolHandlers->registerHandler(
-		'file', 
-		'Plugins::RemoteCache::LocalFile'
-	);
+	# Register our custom LocalFile handler (only if enabled)
+	# This follows the same pattern as LocalPlayer plugin
+	if ($prefs->get('enabled')) {
+		require Plugins::RemoteCache::LocalFile;
+		Slim::Player::ProtocolHandlers->registerHandler('file', 'Plugins::RemoteCache::LocalFile');
+		$log->info("RemoteCache: Registered file:// handler");
+	} else {
+		$log->info("RemoteCache: Plugin disabled, file:// handler not registered");
+	}
 	
-	$log->info("RemoteCache Plugin initialized - registered file:// handler");
+	$log->info("RemoteCache Plugin initialization complete");
 	
 	$class->SUPER::initPlugin(@_);
 }
