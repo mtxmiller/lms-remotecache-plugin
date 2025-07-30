@@ -43,9 +43,26 @@ sub initPlugin {
 	if ($prefs->get('enabled')) {
 		require Plugins::RemoteCache::LocalFile;
 		Slim::Player::ProtocolHandlers->registerHandler('file', 'Plugins::RemoteCache::LocalFile');
-		$log->info("RemoteCache: Registered file:// handler");
+		
+		# Verify what handler is actually registered
+		my $handler = Slim::Player::ProtocolHandlers->handlerForURL('file:///test');
+		$log->warn("RemoteCache: Registered file:// handler");
+		$log->warn("RemoteCache: Current file handler is: " . (ref($handler) || 'none'));
+		
+		# Test if our handler has the expected methods
+		if ($handler && $handler->can('canDirectStream')) {
+			$log->warn("RemoteCache: Handler supports canDirectStream - GOOD");
+		} else {
+			$log->warn("RemoteCache: Handler does NOT support canDirectStream - BAD");
+		}
+		
+		if ($handler && $handler->can('canDirectStreamSong')) {
+			$log->warn("RemoteCache: Handler supports canDirectStreamSong - GOOD");
+		} else {
+			$log->warn("RemoteCache: Handler does NOT support canDirectStreamSong - BAD");
+		}
 	} else {
-		$log->info("RemoteCache: Plugin disabled, file:// handler not registered");
+		$log->warn("RemoteCache: Plugin disabled, file:// handler not registered");
 	}
 	
 	$log->info("RemoteCache Plugin initialization complete");
