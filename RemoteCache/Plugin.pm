@@ -49,28 +49,6 @@ sub shutdownPlugin {
 	# The handler will remain until server restart
 }
 
-# Web settings page integration
-sub webPages {
-	my $class = shift;
-	
-	my %pages = (
-		'plugins/RemoteCache/settings.html' => \&settingsHandler,
-	);
-	
-	return \%pages;
-}
-
-sub settingsHandler {
-	my ($client, $params) = @_;
-	
-	if ($params->{'saveSettings'}) {
-		$prefs->set('enabled', $params->{'enabled'} || 0);
-		$prefs->set('debug', $params->{'debug'} || 0);
-	}
-	
-	$params->{'prefs'} = $prefs;
-	
-	return Slim::Web::HTTP::filltemplatefile('plugins/RemoteCache/settings.html', $params);
-}
+# Settings handled by Settings.pm
 
 1;
