@@ -11,7 +11,11 @@ use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use Slim::Player::ProtocolHandlers;
 
-my $log = logger('plugin.remotecache');
+my $log = Slim::Utils::Log->addLogCategory({
+	'category'     => 'plugin.remotecache',
+	'defaultLevel' => 'ERROR',
+	'description'  => 'PLUGIN_REMOTECACHE'
+});
 my $prefs = preferences('plugin.remotecache');
 
 # Plugin metadata
